@@ -71,6 +71,7 @@ module Her
     def setup(opts={}, &blk)
       opts[:url] = opts.delete(:base_uri) if opts.include?(:base_uri) # Support legacy :base_uri option
       @options = opts
+      @options[:suppress_response_errors] ||= []
 
       faraday_options = @options.reject { |key, value| !FARADAY_OPTIONS.include?(key.to_sym) }
       @connection = Faraday.new(faraday_options) do |connection|
@@ -89,19 +90,26 @@ module Her
       path = opts.delete(:_path)
       headers = opts.delete(:_headers)
       opts.delete_if { |key, value| key.to_s =~ /^_/ } # Remove all internal parameters
-      response = @connection.send method do |request|
-        request.headers.merge!(headers) if headers
-        if method == :get
-          # For GET requests, treat additional parameters as querystring data
-          request.url path, opts
-        else
-          # For POST, PUT and DELETE requests, treat additional parameters as request body
-          request.url path
-          request.body = opts
+      begin
+        response = @connection.send method do |request|
+          request.headers.merge!(headers) if headers
+          if method == :get
+            # For GET requests, treat additional parameters as querystring data
+            request.url path, opts
+          else
+            # For POST, PUT and DELETE requests, treat additional parameters as request body
+            request.url path
+            request.body = opts
+          end
         end
-      end
 
-      { :parsed_data => response.env[:body], :response => response }
+        Rails.logger.warn "HER --> response status #{response.env[:status]}"
+
+        { :parsed_data => response.env[:body], :response => response }
+
+      rescue Her::Errors::ResponseError => e
+        raise e unless @options[:suppress_response_errors].include?(e.status)
+      end
     end
 
     private
