@@ -23,7 +23,6 @@ module Her
         # @private
         def self.parse_single(association, klass, data)
           data_key = association[:data_key]
-          Rails.logger.warn "HER --> parse_single for association #{association[:name]} with #{data[data_key].inspect}"
           return {} unless data[data_key]
 
           klass = klass.her_nearby_class(association[:class_name])
