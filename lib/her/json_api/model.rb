@@ -21,6 +21,7 @@ module Her
               data.fetch(:attributes).merge(data.slice(:id))
             rescue
               Rails.logger.warn "HER --> cannot fetch attributes for #{self.inspect} from data #{data.inspect}"
+              nil
             end
           end
 
