@@ -17,7 +17,11 @@ module Her
           @type = name.demodulize.tableize
           
           def self.parse(data)
-            data.fetch(:attributes).merge(data.slice(:id))
+            begin
+              data.fetch(:attributes).merge(data.slice(:id))
+            rescue
+              Rails.logger.warn "HER --> cannot fetch attributes for #{self.inspect} from data #{data.inspect}"
+            end
           end
 
           def self.to_params(attributes, changes={})
