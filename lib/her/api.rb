@@ -103,6 +103,8 @@ module Her
           end
         end
 
+        Rails.logger.warn "HER --> response status #{response.env[:status]}"
+
         { :parsed_data => response.env[:body], :response => response }
 
       rescue Her::Errors::ResponseError => e
