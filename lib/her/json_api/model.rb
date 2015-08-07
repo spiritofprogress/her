@@ -18,9 +18,14 @@ module Her
           
           def self.parse(data)
             begin
-              data.fetch(:attributes).merge(data.slice(:id))
+              if data.has_key?(:attributes)
+                data.fetch(:attributes).merge(data.slice(:id))
+              else
+                data
+              end
             rescue
               Rails.logger.warn "HER --> cannot fetch attributes for #{self.inspect} from data #{data.inspect}"
+              byebug
               nil
             end
           end
