@@ -94,6 +94,7 @@ module Her
         def assign_nested_attributes(attributes)
           assign_single_nested_attributes(attributes)
         end
+
       end
     end
   end

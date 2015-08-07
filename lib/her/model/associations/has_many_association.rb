@@ -94,6 +94,7 @@ module Her
           data = attributes.is_a?(Hash) ? attributes.values : attributes
           @parent.attributes[@name] = Her::Model::Attributes.initialize_collection(@klass, :data => data)
         end
+        
       end
     end
   end

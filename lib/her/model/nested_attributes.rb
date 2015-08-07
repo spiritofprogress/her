@@ -5,14 +5,22 @@ module Her
 
       def saved_nested_attributes
         nested_attributes = self.class.saved_nested_associations.each_with_object({}) do |association_name, hash|
-          associate = self.send(association_name)
-          if associate.present?
-            associate_params = associate.to_params
-            associate_params = associate_params[associate.class.included_root_element] if associate.class.include_root_in_json?
-            hash["#{association_name}_attributes".to_sym] = associate_params
+          if association = self.send(association_name)
+            if association.kind_of?(Array)
+              hash["#{association_name}_attributes".to_sym] = association.map{ |a| to_params_for_nesting(a) }
+            else
+              hash["#{association_name}_attributes".to_sym] = to_params_for_nesting(association)
+            end
           end
         end
       end
+      
+      def to_params_for_nesting(associate)
+        associate_params = associate.to_params
+        associate_params = associate_params[associate.class.included_root_element] if associate.class.include_root_in_json?
+        associate_params
+      end
+      
 
       module ClassMethods
         # Allow nested attributes for an association
@@ -56,13 +64,12 @@ module Her
         end
 
         def sends_nested_attributes_for(*associations)
+          Rails.logger.warn "---> sends_nested_attributes_for(#{associations.inspect})"
           allowed_association_names = association_names
           associations.each do |association_name|
             unless allowed_association_names.include?(association_name)
               raise Her::Errors::AssociationUnknownError.new("Unknown association name :#{association_name} in sends_nested_attributes_for")
             end
-            
-            # dumb but effective
             saved_nested_associations.push association_name
           end
         end
