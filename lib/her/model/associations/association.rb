@@ -49,10 +49,13 @@ module Her
 
           return @cached_result unless @params.any? || @cached_result.nil?
           return @parent.attributes[@name] unless @params.any? || @parent.attributes[@name].blank?
-
-          path = build_association_path lambda { "#{@parent.request_path(@params)}#{@opts[:path]}" }
-          @klass.get(path, @params).tap do |result|
-            @cached_result = result unless @params.any?
+          
+          # No point trying to fetch associates for an object with no id yet.
+          if @parent.persisted?
+            path = build_association_path lambda { "#{@parent.request_path(@params)}#{@opts[:path]}" }
+            @klass.get(path, @params).tap do |result|
+              @cached_result = result unless @params.any?
+            end
           end
         end
 

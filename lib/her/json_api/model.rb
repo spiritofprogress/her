@@ -24,7 +24,6 @@ module Her
                 data
               end
             rescue
-              Rails.logger.warn "HER --> cannot fetch attributes for #{self.inspect} from data #{data.inspect}"
               byebug
               nil
             end

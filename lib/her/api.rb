@@ -90,6 +90,7 @@ module Her
       path = opts.delete(:_path)
       headers = opts.delete(:_headers)
       opts.delete_if { |key, value| key.to_s =~ /^_/ } # Remove all internal parameters
+
       begin
         response = @connection.send method do |request|
           request.headers.merge!(headers) if headers

@@ -64,7 +64,6 @@ module Her
         end
 
         def sends_nested_attributes_for(*associations)
-          Rails.logger.warn "---> sends_nested_attributes_for(#{associations.inspect})"
           allowed_association_names = association_names
           associations.each do |association_name|
             unless allowed_association_names.include?(association_name)
