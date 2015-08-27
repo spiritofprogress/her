@@ -24,7 +24,6 @@ module Her
                 data
               end
             rescue
-              byebug
               nil
             end
           end
