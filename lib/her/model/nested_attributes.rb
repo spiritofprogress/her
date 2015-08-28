@@ -7,7 +7,11 @@ module Her
         nested_attributes = self.class.saved_nested_associations.each_with_object({}) do |association_name, hash|
           if association = self.send(association_name)
             if association.kind_of?(Array)
-              hash["#{association_name}_attributes".to_sym] = association.map{ |a| to_params_for_nesting(a) }
+              associates = {}
+              association.each_with_index {|a, i|
+                associates[i] = to_params_for_nesting(a)
+              }
+              hash["#{association_name}_attributes".to_sym] = associates
             else
               hash["#{association_name}_attributes".to_sym] = to_params_for_nesting(association)
             end
@@ -17,6 +21,7 @@ module Her
       
       def to_params_for_nesting(associate)
         associate_params = associate.to_params
+        associate_params['_destroy'] = associate.destroying?
         associate_params = associate_params[associate.class.included_root_element] if associate.class.include_root_in_json?
         associate_params
       end

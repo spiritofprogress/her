@@ -45,7 +45,7 @@ module Her
               hash
             end
           end
-
+          
           if include_root_in_json?
             if json_api_format?
               { included_root_element => [filtered_attributes] }
