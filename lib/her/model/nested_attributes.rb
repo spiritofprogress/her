@@ -21,8 +21,9 @@ module Her
       
       def to_params_for_nesting(associate)
         associate_params = associate.to_params
-        associate_params['_destroy'] = associate.destroying?
         associate_params = associate_params[associate.class.included_root_element] if associate.class.include_root_in_json?
+        associate_params['_destroy'] = associate.destroying?
+        associate_params['id'] = associate.id
         associate_params
       end
       

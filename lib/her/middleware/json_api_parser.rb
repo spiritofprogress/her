@@ -32,13 +32,14 @@ module Her
         {}.tap do |built|
           relationships.each do |rel_name, linkage|
             if linkage_data = linkage.fetch(:data, {})
+              Rails.logger.warn "linkage_data for #{rel_name} is #{linkage_data.inspect}"
               built_relationship = if linkage_data.is_a? Array
-                linkage_data.map { |l| included.detect { |i| i.values_at(:id, :type) == l.values_at(:id, :type) } }
+                linkage_data.map { |l| included.detect { |i| i && i.values_at(:id, :type) == l.values_at(:id, :type) } }
               else
-                included.detect { |i| i.values_at(:id, :type) == linkage_data.values_at(:id, :type) }
+                included.detect { |i| i && i.values_at(:id, :type) == linkage_data.values_at(:id, :type) }
               end
 
-              built[rel_name] = built_relationship
+              built[rel_name] = built_relationship if built_relationship
             end
           end
         end
