@@ -136,6 +136,19 @@ module Her
       def id
         @attributes[self.class.primary_key]
       end
+      
+      # Mark as destroyed in order to relay _destroy parameter when nested
+      def _destroy=(value)
+        @destroying = !!value
+      end
+
+      def _destroy
+        @destroying ||= false
+      end
+
+      def destroying?
+        @destroying || false
+      end
 
       # Return `true` if the other object is also a Her::Model and has matching data
       #

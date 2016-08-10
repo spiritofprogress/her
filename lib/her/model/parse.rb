@@ -10,7 +10,12 @@ module Her
       #   @user.to_params
       #   # => { :id => 1, :name => 'John Smith' }
       def to_params
-        self.class.to_params(self.attributes, self.changes)
+        self.class.to_params(self.saved_attributes, self.changes)
+      end
+      
+      def saved_attributes
+        simple_attributes = attributes.except(*self.class.association_names.map(&:to_s))
+        simple_attributes.merge(saved_nested_attributes)
       end
 
       module ClassMethods
@@ -33,14 +38,14 @@ module Her
         # @private
         def to_params(attributes, changes={})
           filtered_attributes = attributes.dup.symbolize_keys
-          filtered_attributes.merge!(embeded_params(attributes))
+          # filtered_attributes.merge!(embeded_params(attributes))
           if her_api.options[:send_only_modified_attributes]
             filtered_attributes = changes.symbolize_keys.keys.inject({}) do |hash, attribute|
               hash[attribute] = filtered_attributes[attribute]
               hash
             end
           end
-
+          
           if include_root_in_json?
             if json_api_format?
               { included_root_element => [filtered_attributes] }
@@ -55,19 +60,19 @@ module Her
 
         # @private
         # TODO: Handle has_one
-        def embeded_params(attributes)
-          associations[:has_many].select { |a| attributes.include?(a[:data_key])}.compact.inject({}) do |hash, association|
-            params = attributes[association[:data_key]].map(&:to_params)
-            next if params.empty?
-            if association[:class_name].constantize.include_root_in_json?
-              root = association[:class_name].constantize.root_element
-              hash[association[:data_key]] = params.map { |n| n[root] }
-            else
-              hash[association[:data_key]] = params
-            end
-            hash
-          end
-        end
+        # def embeded_params(attributes)
+        #   associations[:has_many].select { |a| attributes.include?(a[:data_key])}.compact.inject({}) do |hash, association|
+        #     params = attributes[association[:data_key]].map(&:to_params)
+        #     next if params.empty?
+        #     if association[:class_name].constantize.include_root_in_json?
+        #       root = association[:class_name].constantize.root_element
+        #       hash[association[:data_key]] = params.map { |n| n[root] }
+        #     else
+        #       hash[association[:data_key]] = params
+        #     end
+        #     hash
+        #   end
+        # end
 
         # Return or change the value of `include_root_in_json`
         #

@@ -3,6 +3,31 @@ module Her
     module NestedAttributes
       extend ActiveSupport::Concern
 
+      def saved_nested_attributes
+        nested_attributes = self.class.saved_nested_associations.each_with_object({}) do |association_name, hash|
+          if association = self.send(association_name)
+            if association.kind_of?(Array)
+              associates = {}
+              association.each_with_index {|a, i|
+                associates[i] = to_params_for_nesting(a)
+              }
+              hash["#{association_name}_attributes".to_sym] = associates
+            else
+              hash["#{association_name}_attributes".to_sym] = to_params_for_nesting(association)
+            end
+          end
+        end
+      end
+      
+      def to_params_for_nesting(associate)
+        associate_params = associate.to_params
+        associate_params = associate_params[associate.class.included_root_element] if associate.class.include_root_in_json?
+        associate_params['_destroy'] = associate.destroying?
+        associate_params['id'] = associate.id
+        associate_params
+      end
+      
+
       module ClassMethods
         # Allow nested attributes for an association
         #
@@ -25,7 +50,7 @@ module Her
 
           associations.each do |association_name|
             unless allowed_association_names.include?(association_name)
-              raise Her::Errors::AssociationUnknownError.new("Unknown association name :#{association_name}")
+              raise Her::Errors::AssociationUnknownError.new("Unknown association name :#{association_name} in accepts_nested_attributes_for")
             end
 
             class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -37,6 +62,20 @@ module Her
                 self.#{association_name}.assign_nested_attributes(attributes)
               end
             RUBY
+          end
+        end
+
+        def saved_nested_associations
+          @_her_saved_associations ||= []
+        end
+
+        def sends_nested_attributes_for(*associations)
+          allowed_association_names = association_names
+          associations.each do |association_name|
+            unless allowed_association_names.include?(association_name)
+              raise Her::Errors::AssociationUnknownError.new("Unknown association name :#{association_name} in sends_nested_attributes_for")
+            end
+            saved_nested_associations.push association_name
           end
         end
       end

@@ -16,6 +16,13 @@ module Her
 
         json
       end
+      
+      def assert_response_ok(status, message)
+        if exception_class = Her::Errors.exception_class_for_status(status)
+          raise exception_class, message
+        end
+      end
+      
     end
   end
 end

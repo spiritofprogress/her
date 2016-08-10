@@ -83,7 +83,7 @@ module Her
 
         # @private
         def fetch
-          super.tap do |o|
+          (super || []).tap do |o|
             inverse_of = @opts[:inverse_of] || @parent.singularized_resource_name
             o.each { |entry| entry.send("#{inverse_of}=", @parent) }
           end
@@ -94,6 +94,7 @@ module Her
           data = attributes.is_a?(Hash) ? attributes.values : attributes
           @parent.attributes[@name] = Her::Model::Attributes.initialize_collection(@klass, :data => data)
         end
+        
       end
     end
   end

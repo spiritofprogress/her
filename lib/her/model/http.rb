@@ -54,7 +54,6 @@ module Her
         # @private
         def request(params={})
           request = her_api.request(params)
-
           if block_given?
             yield request[:parsed_data], request[:response]
           else
